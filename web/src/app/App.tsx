@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { Routes, Route } from "react-router";
+import { Toaster } from "sonner";
+import AdminApp from "./admin/AdminApp";
 import {
   Phone,
   MessageCircle,
@@ -172,7 +175,7 @@ const AREAS = [
   "Titabar",
 ];
 
-export default function App() {
+function PublicSite() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [formStatus, setFormStatus] = useState("");
@@ -1046,5 +1049,17 @@ export default function App() {
         </a>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <>
+      <Toaster richColors position="top-right" closeButton />
+      <Routes>
+        <Route path="/admin/*" element={<AdminApp />} />
+        <Route path="/*" element={<PublicSite />} />
+      </Routes>
+    </>
   );
 }
