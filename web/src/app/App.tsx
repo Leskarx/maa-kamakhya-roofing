@@ -175,6 +175,40 @@ const AREAS = [
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [formStatus, setFormStatus] = useState("");
+
+  const onSubmitForm = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormStatus("Sending...");
+    
+    const formElement = event.currentTarget;
+    const formData = new FormData(formElement);
+    formData.append("access_key", import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "YOUR_ACCESS_KEY_HERE");
+
+    const object = Object.fromEntries(formData);
+    const json = JSON.stringify(object);
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: json
+      });
+      const data = await response.json();
+      if (data.success) {
+        setFormStatus("Success! Your quote request has been sent.");
+        formElement.reset();
+      } else {
+        setFormStatus("Something went wrong. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Submission Error:", error);
+      setFormStatus(`Error connecting to server: ${error.message}`);
+    }
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -806,32 +840,32 @@ export default function App() {
             {/* Right side form */}
             <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-2xl">
               <h3 className="font-['Poppins',sans-serif] font-bold text-2xl text-[#0B2E6B] mb-6">Request a Free Quote</h3>
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-4" onSubmit={onSubmitForm}>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</label>
-                    <input type="text" id="name" placeholder="John Doe" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all" required />
+                    <input type="text" name="name" id="name" placeholder="John Doe" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all" required />
                   </div>
                   <div className="space-y-1.5">
                     <label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" id="phone" placeholder="+91 98765 43210" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all" required />
+                    <input type="tel" name="phone" id="phone" placeholder="+91 98765 43210" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all" required />
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label htmlFor="email" className="text-sm font-medium text-gray-700">Email Address</label>
-                    <input type="email" id="email" placeholder="john@example.com" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all" required />
+                    <input type="email" name="email" id="email" placeholder="john@example.com" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all" required />
                   </div>
                   <div className="space-y-1.5">
                     <label htmlFor="location" className="text-sm font-medium text-gray-700">Project Location</label>
-                    <input type="text" id="location" placeholder="e.g. Golaghat, Assam" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all" required />
+                    <input type="text" name="location" id="location" placeholder="e.g. Golaghat, Assam" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all" required />
                   </div>
                 </div>
                 
                 <div className="space-y-1.5">
                   <label htmlFor="service" className="text-sm font-medium text-gray-700">Service Needed</label>
-                  <select id="service" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all bg-white" required>
+                  <select name="service" id="service" className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all bg-white" required>
                     <option value="">Select a service...</option>
                     <option value="installation">Roof Installation</option>
                     <option value="repair">Roof Repair & Maintenance</option>
@@ -844,12 +878,17 @@ export default function App() {
 
                 <div className="space-y-1.5">
                   <label htmlFor="message" className="text-sm font-medium text-gray-700">Additional Details</label>
-                  <textarea id="message" rows={4} placeholder="Tell us about your project or issue..." className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all resize-none"></textarea>
+                  <textarea name="message" id="message" rows={4} placeholder="Tell us about your project or issue..." className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#D72626] focus:border-[#D72626] outline-none transition-all resize-none"></textarea>
                 </div>
 
-                <button type="submit" className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-[#0B2E6B] text-white font-semibold hover:bg-blue-900 transition-colors shadow-md mt-2">
-                  Get My Free Quote <ArrowRight className="w-4 h-4" />
+                <button type="submit" disabled={formStatus === "Sending..."} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-[#0B2E6B] text-white font-semibold hover:bg-blue-900 transition-colors shadow-md mt-2 disabled:opacity-70">
+                  {formStatus === "Sending..." ? "Sending..." : "Get My Free Quote"} <ArrowRight className="w-4 h-4" />
                 </button>
+                {formStatus && formStatus !== "Sending..." && (
+                  <p className={`text-sm text-center mt-3 font-medium ${formStatus.includes("Success") ? "text-green-600" : "text-red-600"}`}>
+                    {formStatus}
+                  </p>
+                )}
               </form>
             </div>
           </div>
