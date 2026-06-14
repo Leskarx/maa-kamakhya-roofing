@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { Routes, Route } from "react-router";
 import { Toaster } from "sonner";
 import { quoteRequestService, homepageSettingsService, testimonialService, projectService } from "../lib/supabaseService";
@@ -1122,37 +1122,67 @@ function PublicSite() {
 
 const ProjectCard = ({ images, type, location, alt }: { images: string[], type: string, location: string, alt: string }) => {
   const [idx, setIdx] = useState(0);
-  
-  const next = (e: React.MouseEvent) => {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startTimer = () => {
+    if (images.length > 1) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setIdx((prev) => (prev + 1) % images.length);
+      }, 3000); // 3 seconds per slide
+    }
+  };
+
+  useEffect(() => {
+    startTimer();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [images.length]);
+
+  const next = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     setIdx((prev) => (prev + 1) % images.length);
+    startTimer();
   };
-  const prev = (e: React.MouseEvent) => {
+  
+  const prev = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     setIdx((prev) => (prev - 1 + images.length) % images.length);
+    startTimer();
   };
 
   return (
     <div className="group rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl transition-all bg-white">
       <div className="relative overflow-hidden h-52 bg-blue-100 group/slider">
-        <img
-          src={images[idx]}
-          alt={alt}
-          className="w-full h-full object-cover transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+        <div 
+          className="flex w-full h-full transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${idx * 100}%)` }}
+        >
+          {images.map((img, i) => (
+            <img
+              key={i}
+              src={img}
+              alt={alt}
+              className="w-full h-full object-cover flex-shrink-0 group-hover/slider:scale-105 transition-transform duration-700"
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none z-0" />
         
         {images.length > 1 && (
           <>
             <button 
               onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center backdrop-blur-sm text-white opacity-0 group-hover/slider:opacity-100 transition-opacity z-10"
+              onTouchStart={prev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/30 hover:bg-white/50 flex items-center justify-center backdrop-blur-sm text-white md:opacity-0 md:group-hover/slider:opacity-100 transition-opacity z-10"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button 
               onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center backdrop-blur-sm text-white opacity-0 group-hover/slider:opacity-100 transition-opacity z-10"
+              onTouchStart={next}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/30 hover:bg-white/50 flex items-center justify-center backdrop-blur-sm text-white md:opacity-0 md:group-hover/slider:opacity-100 transition-opacity z-10"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
