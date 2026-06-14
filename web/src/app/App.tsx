@@ -412,22 +412,31 @@ function PublicSite() {
                 </div>
 
                 <h1 className="font-['Poppins',sans-serif] font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-[1.1]">
-                  {(homepageSettings as HomepageSettings).heroTitle}
+                  {(() => {
+                    const title = (homepageSettings as HomepageSettings).heroTitle || "";
+                    const parts = title.split(".");
+                    if (parts.length > 1 && parts[1].trim() !== "") {
+                      return (
+                        <>
+                          {parts[0]}.
+                          <br />
+                          <span className="text-[#F4B400]">{parts.slice(1).join(".").trim()}</span>
+                        </>
+                      );
+                    }
+                    return title;
+                  })()}
                 </h1>
-                <p className="mt-2 text-[#F4B400] text-lg sm:text-xl">
-                  {(homepageSettings as HomepageSettings).heroSubtitle}
-                </p>
 
-                <p className="text-blue-200 text-lg sm:text-xl leading-relaxed max-w-lg">
-                  Professional Roofing Solutions for Homes, Warehouses &amp;
-                  Commercial Buildings across Assam.
+                <p className="mt-4 text-blue-200 text-lg sm:text-xl leading-relaxed max-w-lg">
+                  {(homepageSettings as HomepageSettings).heroSubtitle}
                 </p>
 
                 <p className="text-blue-100/80 text-sm leading-relaxed max-w-md">
                   With{" "}
-                  <strong className="text-white">{(homepageSettings as HomepageSettings).yearsExperience}+ years of experience</strong>{" "}
+                  <strong className="text-white">{(homepageSettings as HomepageSettings).yearsExperience} years of experience</strong>{" "}
                   and{" "}
-                  <strong className="text-white">{(homepageSettings as HomepageSettings).projectsCompleted}+ completed projects</strong>,
+                  <strong className="text-white">{(homepageSettings as HomepageSettings).projectsCompleted} completed projects</strong>,
                   we deliver roofing you can trust through every monsoon.
                 </p>
               </>
@@ -525,28 +534,28 @@ function PublicSite() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
               {
-                value: homepageSettings ? `${homepageSettings.yearsExperience}+` : "11+",
+                value: homepageSettings ? homepageSettings.yearsExperience : "11+",
                 label: "Years Experience",
                 icon: Award,
                 color: "text-[#0B2E6B]",
                 bg: "bg-blue-50",
               },
               {
-                value: homepageSettings ? `${homepageSettings.projectsCompleted}+` : "300+",
+                value: homepageSettings ? homepageSettings.projectsCompleted : "300+",
                 label: "Projects Completed",
                 icon: CheckCircle2,
                 color: "text-[#D72626]",
                 bg: "bg-red-50",
               },
               {
-                value: homepageSettings ? `${homepageSettings.skilledProfessionals}+` : "50+",
+                value: homepageSettings ? homepageSettings.skilledProfessionals : "50+",
                 label: "Skilled Professionals",
                 icon: Users,
                 color: "text-[#F4B400]",
                 bg: "bg-amber-50",
               },
               {
-                value: homepageSettings ? `${homepageSettings.customerSatisfaction}%` : "100%",
+                value: homepageSettings ? homepageSettings.customerSatisfaction : "100%",
                 label: "Customer Satisfaction",
                 icon: ThumbsUp,
                 color: "text-[#0B2E6B]",
