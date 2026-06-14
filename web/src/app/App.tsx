@@ -1135,15 +1135,33 @@ const ProjectCard = ({ images, type, location, alt }: { images: string[], type: 
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setIsTransitioning(true);
-        setIdx((prev) => prev + 1);
+        setIdx((prev) => {
+          // If the browser throttled the transitionEnd event (e.g. inactive tab),
+          // don't keep incrementing into empty space.
+          if (prev >= displayImages.length - 1) return prev;
+          return prev + 1;
+        });
       }, 3000); // 3 seconds per slide
     }
   };
 
   useEffect(() => {
     startTimer();
+    
+    // Pause timer when user changes tabs to prevent weird transition states
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (timerRef.current) clearInterval(timerRef.current);
+      } else {
+        startTimer();
+      }
+    };
+    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [images.length]);
 
