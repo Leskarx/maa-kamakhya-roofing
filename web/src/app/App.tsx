@@ -27,6 +27,7 @@ import {
   ArrowRight,
   Users,
   ThumbsUp,
+  ChevronLeft,
 } from "lucide-react";
 
 const AdminApp = lazy(() => import("./admin/AdminApp"));
@@ -715,33 +716,17 @@ function PublicSite() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {(liveProjects.length > 0 ? liveProjects.map(p => ({
-              img: p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1763665814538-8ba04597286c?w=800&h=600&fit=crop&auto=format',
+              images: p.images && p.images.length > 0 ? p.images : ['https://images.unsplash.com/photo-1763665814538-8ba04597286c?w=800&h=600&fit=crop&auto=format'],
               type: p.serviceType,
               location: p.location,
               alt: p.title
-            })) : PROJECTS).map(({ img, type, location, alt }) => (
-              <div
-                key={`${type}-${location}-${alt}`}
-                className="group rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl transition-all bg-white"
-              >
-                <div className="relative overflow-hidden h-52 bg-blue-100">
-                  <img
-                    src={img}
-                    alt={alt}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <span className="inline-block bg-[#D72626] text-white text-xs font-bold px-3 py-1 rounded-full mb-1">
-                      {type}
-                    </span>
-                    <div className="flex items-center gap-1 text-white text-sm font-medium">
-                      <MapPin className="w-3.5 h-3.5 text-[#F4B400]" />{" "}
-                      {location}, Assam
-                    </div>
-                  </div>
-                </div>
-              </div>
+            })) : PROJECTS.map(p => ({
+              images: [p.img],
+              type: p.type,
+              location: p.location,
+              alt: p.alt
+            }))).map(({ images, type, location, alt }) => (
+              <ProjectCard key={`${type}-${location}-${alt}`} images={images} type={type} location={location} alt={alt} />
             ))}
           </div>
         </div>
@@ -1134,6 +1119,64 @@ function PublicSite() {
     </div>
   );
 }
+
+const ProjectCard = ({ images, type, location, alt }: { images: string[], type: string, location: string, alt: string }) => {
+  const [idx, setIdx] = useState(0);
+  
+  const next = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx((prev) => (prev + 1) % images.length);
+  };
+  const prev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIdx((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  return (
+    <div className="group rounded-2xl overflow-hidden shadow-sm border border-border hover:shadow-xl transition-all bg-white">
+      <div className="relative overflow-hidden h-52 bg-blue-100 group/slider">
+        <img
+          src={images[idx]}
+          alt={alt}
+          className="w-full h-full object-cover transition-transform duration-500"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+        
+        {images.length > 1 && (
+          <>
+            <button 
+              onClick={prev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center backdrop-blur-sm text-white opacity-0 group-hover/slider:opacity-100 transition-opacity z-10"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={next}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center backdrop-blur-sm text-white opacity-0 group-hover/slider:opacity-100 transition-opacity z-10"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+            
+            <div className="absolute top-3 right-3 flex gap-1 z-10 pointer-events-none">
+              {images.map((_, i) => (
+                <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === idx ? 'bg-white scale-125 shadow-sm' : 'bg-white/40'}`} />
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
+          <span className="inline-block bg-[#D72626] text-white text-xs font-bold px-3 py-1 rounded-full mb-1">
+            {type}
+          </span>
+          <div className="flex items-center gap-1 text-white text-sm font-medium">
+            <MapPin className="w-3.5 h-3.5 text-[#F4B400]" /> {location}, Assam
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function App() {
   return (
