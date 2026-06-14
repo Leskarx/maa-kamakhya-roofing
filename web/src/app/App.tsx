@@ -183,6 +183,7 @@ function PublicSite() {
   const [scrolled, setScrolled] = useState(false);
   const [formStatus, setFormStatus] = useState("");
   const [homepageSettings, setHomepageSettings] = useState<HomepageSettings | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const onSubmitForm = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -245,10 +246,13 @@ function PublicSite() {
   useEffect(() => {
     const fetchHomepageSettings = async () => {
       try {
+        setLoading(true);
         const settings = await homepageSettingsService.get();
         setHomepageSettings(settings);
       } catch (error) {
         console.error("Failed to fetch homepage settings:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -398,7 +402,7 @@ function PublicSite() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-28 pb-20 md:pb-28 grid md:grid-cols-2 gap-12 items-center w-full">
           {/* Left content */}
           <div className="space-y-6">
-            {homepageSettings && (
+            {homepageSettings && !loading && (
               <>
                 <div className="inline-flex items-center gap-2 bg-[#F4B400]/15 border border-[#F4B400]/30 rounded-full px-4 py-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#F4B400] animate-pulse" />
@@ -429,7 +433,7 @@ function PublicSite() {
               </>
             )}
 
-            {!homepageSettings && (
+            {!homepageSettings && !loading && (
               <>
                 <div className="inline-flex items-center gap-2 bg-[#F4B400]/15 border border-[#F4B400]/30 rounded-full px-4 py-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#F4B400] animate-pulse" />
@@ -458,6 +462,12 @@ function PublicSite() {
                   we deliver roofing you can trust through every monsoon.
                 </p>
               </>
+            )}
+
+            {loading && (
+              <div className="flex items-center justify-center py-20">
+                <div className="w-12 h-12 border-2 border-[#F4B400]/30 border-t-[#F4B400] rounded-full animate-spin"></div>
+              </div>
             )}
 
             <div className="flex flex-wrap gap-3 pt-2">
