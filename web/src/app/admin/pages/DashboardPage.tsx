@@ -166,7 +166,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="font-bold text-gray-900">Quote Trends</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Jan – Jun 2026</p>
+              <p className="text-xs text-gray-400 mt-0.5">Last 6 months</p>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={220}>
