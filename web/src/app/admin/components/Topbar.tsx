@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Bell, LogOut, User, Home, ChevronDown } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { mockAdminProfile } from '../data/mockData';
+import { quoteRequestService, adminProfileService } from '@/lib/supabaseService';
+import type { QuoteRequest, AdminProfile } from '../types';
 
 interface TopbarProps {
   sidebarCollapsed: boolean;
@@ -11,19 +12,38 @@ interface TopbarProps {
 export function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
   const navigate = useNavigate();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
+  const [profile, setProfile] = useState<AdminProfile | null>(null);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [qRes, pRes] = await Promise.all([
+          quoteRequestService.getAll(),
+          adminProfileService.get()
+        ]);
+        setQuotes(qRes);
+        setProfile(pRes);
+      } catch (err) {
+        console.error('Failed to fetch topbar data:', err);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleLogout = () => {
     sessionStorage.removeItem('admin_auth');
     navigate('/admin/login');
   };
 
-  const notifications = [
-    { id: 1, text: 'New quote request from Rajesh Bora', time: '5 min ago', unread: true },
-    { id: 2, text: 'Project PRJ-006 status updated', time: '1 hr ago', unread: true },
-    { id: 3, text: 'Testimonial TST-005 pending approval', time: '3 hrs ago', unread: false },
-  ];
-
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const pendingQuotes = quotes.filter(q => q.status === 'Pending');
+  const unreadCount = pendingQuotes.length;
+  const notifications = pendingQuotes.map(q => ({
+    id: q.id,
+    text: `New quote request from ${q.customerName}`,
+    time: new Date(q.dateSubmitted).toLocaleDateString(),
+    unread: true,
+  }));
 
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-30 shadow-sm">
@@ -67,6 +87,7 @@ export function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                 {notifications.map(n => (
                   <DropdownMenu.Item
                     key={n.id}
+                    onClick={() => navigate('/admin/quotes')}
                     className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer outline-none"
                   >
                     {n.unread && (
@@ -79,9 +100,12 @@ export function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
                   </DropdownMenu.Item>
                 ))}
               </div>
-              <div className="px-4 py-2 border-t border-gray-100">
-                <button className="text-xs text-[#0B2E6B] font-semibold hover:underline">
-                  Mark all as read
+              <div className="px-4 py-2 border-t border-gray-100 text-center">
+                <button 
+                  onClick={() => navigate('/admin/quotes')}
+                  className="text-xs text-[#0B2E6B] font-semibold hover:underline"
+                >
+                  View all quotes
                 </button>
               </div>
             </DropdownMenu.Content>
@@ -96,11 +120,11 @@ export function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
               className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors"
             >
               <div className="w-8 h-8 rounded-lg bg-[#0B2E6B] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                {mockAdminProfile.name.charAt(0)}
+                {profile?.name ? profile.name.charAt(0) : 'A'}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-semibold text-gray-800 leading-tight">{mockAdminProfile.name}</p>
-                <p className="text-xs text-gray-400">{mockAdminProfile.role}</p>
+                <p className="text-sm font-semibold text-gray-800 leading-tight">{profile?.name || 'Admin User'}</p>
+                <p className="text-xs text-gray-400">{profile?.role || 'Admin'}</p>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden sm:block" />
             </button>
@@ -111,8 +135,8 @@ export function Topbar({ sidebarCollapsed: _ }: TopbarProps) {
               align="end"
             >
               <div className="px-3 py-2 mb-1">
-                <p className="text-sm font-bold text-gray-900">{mockAdminProfile.name}</p>
-                <p className="text-xs text-gray-400 truncate">{mockAdminProfile.email}</p>
+                <p className="text-sm font-bold text-gray-900">{profile?.name || 'Admin User'}</p>
+                <p className="text-xs text-gray-400 truncate">{profile?.email || 'admin@example.com'}</p>
               </div>
               <DropdownMenu.Separator className="h-px bg-gray-100 my-1" />
               <DropdownMenu.Item

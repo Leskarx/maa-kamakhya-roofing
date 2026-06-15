@@ -266,7 +266,7 @@ function PublicSite() {
         setFormStatus("Success! Your quote request has been saved successfully. We'll get back to you shortly!");
         formElement.reset();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Submission Error:", error);
       setFormStatus("There was an issue submitting your request. Please try again or contact us directly.");
     }
